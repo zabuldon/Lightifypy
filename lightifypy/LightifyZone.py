@@ -9,7 +9,7 @@ class LightifyZone(LightifyLuminary):
         self.__zone_id = zone_id
         self.__name = name
         self.__luminaries = []
-        self.__address = struct.pack('<Q', zone_id)  # type: bytes
+        self.__address = struct.pack('<Q', zone_id)
         self.type_flag = 0x02
 
     def address(self):

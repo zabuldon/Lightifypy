@@ -7,7 +7,7 @@ class LightifyLuminary(object):
         self.__temperature = 0
         self.__luminance = 0
         self.__rgb = []
-        self.__address = None  # type: bytes
+        self.__address = None
         self.type_flag = None
         self.__online = True
 
