@@ -1,7 +1,7 @@
 lightfypy
 ===============
 
-Python module for OSRAM_ Lightify_
+Python module for OSRAM Lightify
 Based on work from Christoph Engelbert. (Github: noctarius)
 
 It communicates with a Lightify gateway connected to the same LAN via
