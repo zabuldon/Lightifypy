@@ -1,0 +1,2 @@
+class LightifyException(Exception):
+    pass
