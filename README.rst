@@ -1,4 +1,4 @@
-lightfypy
+LightfyPy
 ===============
 
 Python module for OSRAM Lightify
