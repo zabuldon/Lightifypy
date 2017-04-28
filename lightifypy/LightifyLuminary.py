@@ -1,3 +1,6 @@
+import struct
+
+
 class LightifyLuminary(object):
     def __init__(self, link, name, capabilities):
         self.__lightifyLink = link
@@ -14,17 +17,17 @@ class LightifyLuminary(object):
     def get_name(self):
         return self.__name
 
-    def set_switch(self, activate, consumer):
-        self.__lightifyLink.perform_switch(self, activate, consumer)
+    def set_switch(self,  powered):
+        self.__lightifyLink.set_status(self, powered)
 
-    def set_luminance(self, luminance, millis, consumer):
-        self.__lightifyLink.perform_luminance(luminance, millis, consumer)
+    def set_luminance(self, millis, lum):
+        self.__lightifyLink.set_luminance(self, millis, lum)
 
-    def set_rgb(self, r, g, b, millis, consumer):
-        self.__lightifyLink.perform_rgb(self, r, g, b, millis, consumer)
+    def set_rgb(self, values, millis):
+        self.__lightifyLink.set_rgb(self, values, millis)
 
-    def set_temperature(self, temperature, millis, consumer):
-        self.__lightifyLink.perform_temperature(self, temperature, millis, consumer)
+    def set_temperature(self, temperature, millis):
+        self.__lightifyLink.set_temperature(self, temperature, millis)
 
     def supports(self, capability):
         return capability in self.__capabilities
@@ -53,13 +56,15 @@ class LightifyLuminary(object):
         self.__luminance = luminance
 
     def update_rgb(self, r, g, b):
+
+        #(red,green,blue,) = struct.unpack('<BBB', bytes([r, g, b]))
         self.__rgb = [r, g, b]
 
     def update_powered(self, status):
         self.__status = status
 
-    def update_online(self, val):
-        self.__online = val
-
     def address(self):
         return self.__address
+
+    def update(self):
+        self.__lightifyLink.update()

@@ -32,7 +32,7 @@ class LightifyLink:
         self.__logger.addHandler(logging.NullHandler())
         self.__logger.info("Logging lightfypy")
         self.__lock = threading.RLock()
-
+        self.logger = self.__logger
         with self.__lock:
             try:
                 self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,8 +45,7 @@ class LightifyLink:
                 self.__logger.error(msg[1])
                 sys.exit(2)
 
-            self.__perform_search()
-            self.__fill_zone_list()
+            self.update()
 
     def __next_seq(self):
         """
@@ -55,6 +54,9 @@ class LightifyLink:
         """
         self.__seq += 1
         return self.__seq
+
+    def next_seq(self):
+        return self.__next_seq()
 
     def __send(self, data):
         """
@@ -85,7 +87,11 @@ class LightifyLink:
             pos = 9 + i * 18
             payload = buffer[pos:pos + 18]
             (zone_id, name) = struct.unpack("<H16s", payload)
-            zone = LightifyZone(self, name.decode(self.__charset), zone_id)
+            clear_name = bytes()
+            for b in name:
+                if b != 0x00:
+                    clear_name += bytes([b])
+            zone = LightifyZone(self, clear_name.decode('UTF-8'), zone_id)
             self.__zones[self.__get_zone_uid(zone_id)] = zone
             self.__handle_zone_info(zone)
 
@@ -117,6 +123,11 @@ class LightifyLink:
         data = self.__do_read(packet, command)
         payload = data[7:]
         (zone_id, name, num) = struct.unpack("<H16sB", payload[:19])
+        clear_name = bytes()
+        for b in name:
+            if b != 0x00:
+                clear_name += bytes([b])
+        name = clear_name
         self.__logger.debug("Idx %d: '%s' %d", zone_id, name, num)
         zone = self.__zones[self.__get_zone_uid(zone_id)]
         for i in range(0, num):
@@ -142,7 +153,12 @@ class LightifyLink:
             (device_id, device_address, dev_type) = struct.unpack('<HQB', payload[:11])
             (zone_id, status) = struct.unpack('<H?', payload[16:19])
             (lum, temp, r, g, b, w) = struct.unpack('<BHBBBB', payload[19:26])
-            name = payload[26:].decode(self.__charset)
+            name = payload[26:]
+            clear_name = bytes()
+            for b in name:
+                if b != 0x00:
+                    clear_name += bytes([b])
+            name = clear_name
             device_type = DeviceType.find_by_type_id(dev_type)
             if device_type != DeviceType.Bulb:
                 self.__logger.warning("Found unsupported Lightify device, type id: {}. Skipping.".format(dev_type))
@@ -176,7 +192,6 @@ class LightifyLink:
         luminary.set_rgb(red, green, blue)
 
     def __perform_switch(self, luminary, activate):
-
         command = Command.LIGHT_SWITCH
         packet = PacketBuilder(self).on(command).with_(luminary).switching(activate).build()
         self.__do_read(packet, command)
@@ -271,8 +286,12 @@ class LightifyLink:
 
     def set_status(self, target, powered):
         if isinstance(target, LightifyZone) and not powered:
-            self.__perform_luminance(target, 100, 0)
+            self.__perform_luminance(target, 0, 0)
         self.__perform_switch(target, powered)
 
     def set_luminance(self, target, millis, lums):
         self.__perform_luminance(target, millis, lums)
+
+    def update(self):
+        self.__perform_search()
+        self.__fill_zone_list()
