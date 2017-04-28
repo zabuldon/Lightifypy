@@ -1,13 +1,13 @@
 from setuptools import setup
 setup(
-    name='lightifypy',
+    name='Lightifypy',
     version='0.0.2',
     packages=['lightifypy'],
     include_package_data=True,
     license='WTFPL',
     description='A library to work with OSRAM lightify.',
     long_description='A library to work with OSRAM lightify.',
-    url='https://github.com/zabuldon/lyghtfypy',
+    url='https://github.com/zabuldon/Lightifypy',
     author='Sergey Isachenko',
     author_email='sergey.isachenkol@bool.by',
     classifiers=[
