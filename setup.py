@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
     name='lightifypy',
-    version='0.0.2',
+    version='0.0.3',
     packages=['lightifypy'],
     include_package_data=True,
     license='WTFPL',
