@@ -1,4 +1,4 @@
-import struct
+from lightifypy.Capability import Capability
 
 
 class LightifyLuminary(object):
@@ -9,7 +9,7 @@ class LightifyLuminary(object):
         self.__status = False
         self.__temperature = 0
         self.__luminance = 0
-        self.__rgb = []
+        self.__rgb = None
         self.__address = None
         self.type_flag = None
         self.__online = True
@@ -23,8 +23,8 @@ class LightifyLuminary(object):
     def set_luminance(self, millis, lum):
         self.__lightifyLink.set_luminance(self, millis, lum)
 
-    def set_rgb(self, values, millis):
-        self.__lightifyLink.set_rgb(self, values, millis)
+    def set_rgb(self, r, g, b, millis):
+        self.__lightifyLink.set_rgb(self, r, g, b, millis)
 
     def set_temperature(self, temperature, millis):
         self.__lightifyLink.set_temperature(self, temperature, millis)
@@ -49,6 +49,9 @@ class LightifyLuminary(object):
             self.__name, self.__status, self.__temperature, self.__luminance, ','.join(self.__rgb)
         )
 
+    def is_rgb(self):
+        return Capability.RGB in self.__capabilities
+
     def update_temperature(self, temperature):
         self.__temperature = temperature
 
@@ -56,9 +59,7 @@ class LightifyLuminary(object):
         self.__luminance = luminance
 
     def update_rgb(self, r, g, b):
-
-        #(red,green,blue,) = struct.unpack('<BBB', bytes([r, g, b]))
-        self.__rgb = [r, g, b]
+        self.__rgb = (r, g, b)
 
     def update_powered(self, status):
         self.__status = status

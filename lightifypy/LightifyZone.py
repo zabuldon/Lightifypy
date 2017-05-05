@@ -46,14 +46,21 @@ class LightifyZone(LightifyLuminary):
         return luminance
 
     def get_rgb(self):
-        rgb = []
+        rgb = None
         for luminary in self.__luminaries:
             if not rgb:
                 rgb = luminary.get_rgb()
-            elif set(rgb) == set(luminary.get_rgb()):
-                rgb = [0xff, 0xff, 0xff]
+            elif rgb == luminary.get_rgb():
+                rgb = (255, 255, 255)
                 break
         return rgb
+
+    def is_rgb(self):
+        for luminary in self.__luminaries:
+            if Capability.RGB in luminary.capabilities:
+                return True
+        else:
+            return False
 
     def get_zone_id(self):
         return self.__zone_id

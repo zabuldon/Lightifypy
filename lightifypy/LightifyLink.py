@@ -275,11 +275,8 @@ class LightifyLink:
     def set_temperature(self, target, temperature, millis):
         self.__perform_temperature(target, temperature, millis)
 
-    def set_rgb(self, target, values, millis):
+    def set_rgb(self, target, r, g, b, millis):
         if len(values) > 3:
-            r = struct.pack('<B', values[0])
-            g = struct.pack('<B', values[1])
-            b = struct.pack('<B', values[2])
             self.__perform_rgb(target, r, g, b, millis)
         else:
             self.__logger.error('Value should have at least 3 values')
