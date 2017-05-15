@@ -42,6 +42,8 @@ class LightifyLuminary(object):
         return self.__luminance
 
     def get_rgb(self):
+        if not self.__rgb:
+            return (255, 255, 255)
         return self.__rgb
 
     def to_string(self):

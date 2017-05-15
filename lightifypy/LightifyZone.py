@@ -11,6 +11,7 @@ class LightifyZone(LightifyLuminary):
         self.__luminaries = []
         self.__address = struct.pack('<Q', zone_id)
         self.__lightifyLink = link
+        self.__rgb = None
         self.type_flag = 0x02
         self.link = link
 
@@ -45,19 +46,9 @@ class LightifyZone(LightifyLuminary):
                 break
         return luminance
 
-    def get_rgb(self):
-        rgb = None
-        for luminary in self.__luminaries:
-            if not rgb:
-                rgb = luminary.get_rgb()
-            elif rgb == luminary.get_rgb():
-                rgb = (255, 255, 255)
-                break
-        return rgb
-
     def is_rgb(self):
         for luminary in self.__luminaries:
-            if Capability.RGB in luminary.capabilities:
+            if luminary.supports(Capability.RGB):
                 return True
         else:
             return False
@@ -79,6 +70,11 @@ class LightifyZone(LightifyLuminary):
         for lum in self.__luminaries:
             lum.update_powered(status)
 
+    def update_rgb(self, r, g, b):
+        for lum in self.__luminaries:
+            lum.update_rgb(r, g, b)
+        self.__rgb = (r, g, b)
+
     def update_luminance(self, luminance):
         for lum in self.__luminaries:
             self.__lightifyLink.logger.info('UPDATING STATUS.Ser lum to %s', luminance)
@@ -87,3 +83,7 @@ class LightifyZone(LightifyLuminary):
     def update_temperature(self, temp):
         for lum in self.__luminaries:
             lum.update_temperature(temp)
+
+    def get_rgb(self):
+        for lum in self.__luminaries:
+            self.__rgb = lum.get_rgb()

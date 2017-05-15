@@ -102,6 +102,7 @@ class LightifyLink:
         :param command: Command to be send. See Command.Command class to get more info
         :return: bytes of received data
         """
+        self.__lock.acquire()
         self.__send(packet)
         buff = self.__read_packet()
         (error,) = self.__handle_header(packet, buff, command)
@@ -111,6 +112,7 @@ class LightifyLink:
             self.__logger.error("Packet content, sent: {}, received: {}".format(sent, received))
             self.__logger.error("Error code: 0x{}, command: {}".format(error, command.name))
             raise LightifyException('Error Stacktrace')
+        self.__lock.release()
         return buff
 
     def __handle_zone_info(self, zone):
@@ -153,12 +155,7 @@ class LightifyLink:
             (device_id, device_address, dev_type) = struct.unpack('<HQB', payload[:11])
             (zone_id, status) = struct.unpack('<H?', payload[16:19])
             (lum, temp, r, g, b, w) = struct.unpack('<BHBBBB', payload[19:26])
-            name = payload[26:]
-            clear_name = bytes()
-            for b in name:
-                if b != 0x00:
-                    clear_name += bytes([b])
-            name = clear_name
+            name = payload[26:].decode(self.__charset)
             device_type = DeviceType.find_by_type_id(dev_type)
             if device_type != DeviceType.Bulb:
                 self.__logger.warning("Found unsupported Lightify device, type id: {}. Skipping.".format(dev_type))
@@ -233,9 +230,6 @@ class LightifyLink:
             received = buffer.upper()
             print("Packet content, sent: {}, received: {}", sent, received)
             print("Status code: 0x{}, command: {}".format(status, command.name))
-        if command_id != command.get_id():
-            raise LightifyException("Illegal packet type: {} , command: {}".format(
-                struct.pack('<B', command_id).hex().upper(), command.name))
         return struct.unpack('<B', buffer[6:7])
 
     @staticmethod
@@ -276,10 +270,7 @@ class LightifyLink:
         self.__perform_temperature(target, temperature, millis)
 
     def set_rgb(self, target, r, g, b, millis):
-        if len(values) > 3:
-            self.__perform_rgb(target, r, g, b, millis)
-        else:
-            self.__logger.error('Value should have at least 3 values')
+        self.__perform_rgb(target, r, g, b, millis)
 
     def set_status(self, target, powered):
         if isinstance(target, LightifyZone) and not powered:
