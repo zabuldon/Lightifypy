@@ -87,11 +87,8 @@ class LightifyLink:
             pos = 9 + i * 18
             payload = buffer[pos:pos + 18]
             (zone_id, name) = struct.unpack("<H16s", payload)
-            clear_name = bytes()
-            for b in name:
-                if b != 0x00:
-                    clear_name += bytes([b])
-            zone = LightifyZone(self, clear_name.decode('UTF-8'), zone_id)
+            name = self.__clean_name(name.decode(self.__charset))
+            zone = LightifyZone(self, name, zone_id)
             self.__zones[self.__get_zone_uid(zone_id)] = zone
             self.__handle_zone_info(zone)
 
@@ -115,6 +112,16 @@ class LightifyLink:
         self.__lock.release()
         return buff
 
+    @staticmethod
+    def __clean_name(name):
+        clean_name = ''
+        for ch in name:
+            if ch != chr(0):
+                clean_name += ch
+            else:
+                break
+        return clean_name
+
     def __handle_zone_info(self, zone):
         """
         Filling zone information and grouping devices by zones.
@@ -125,11 +132,7 @@ class LightifyLink:
         data = self.__do_read(packet, command)
         payload = data[7:]
         (zone_id, name, num) = struct.unpack("<H16sB", payload[:19])
-        clear_name = bytes()
-        for b in name:
-            if b != 0x00:
-                clear_name += bytes([b])
-        name = clear_name
+        name = self.__clean_name(name.decode(self.__charset))
         self.__logger.debug("Idx %d: '%s' %d", zone_id, name, num)
         zone = self.__zones[self.__get_zone_uid(zone_id)]
         for i in range(0, num):
@@ -155,7 +158,7 @@ class LightifyLink:
             (device_id, device_address, dev_type) = struct.unpack('<HQB', payload[:11])
             (zone_id, status) = struct.unpack('<H?', payload[16:19])
             (lum, temp, r, g, b, w) = struct.unpack('<BHBBBB', payload[19:26])
-            name = payload[26:].decode(self.__charset)
+            name = self.__clean_name(payload[26:].decode(self.__charset))
             device_type = DeviceType.find_by_type_id(dev_type)
             if device_type != DeviceType.Bulb:
                 self.__logger.warning("Found unsupported Lightify device, type id: {}. Skipping.".format(dev_type))
